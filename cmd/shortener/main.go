@@ -12,6 +12,7 @@ import (
 
 func main() {
 	cfg := config.ParseFlags()
+	config.ParseEnv(cfg)
 
 	h := handler.Handler{
 		Base:      cfg.Shortener.BaseURL,
