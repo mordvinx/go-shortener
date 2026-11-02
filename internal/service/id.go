@@ -7,9 +7,9 @@ import (
 	"fmt"
 )
 
-// GenerateID combines a random prefix with a unique sequence number.
+// generateID combines a random prefix with a unique sequence number.
 // The caller must provide a different number for each new link.
-func GenerateID(number uint64) (string, error) {
+func generateID(number uint64) (string, error) {
 	var random [3]byte
 	if _, err := rand.Read(random[:]); err != nil {
 		return "", fmt.Errorf("generate random prefix: %w", err)

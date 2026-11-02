@@ -8,7 +8,7 @@ import (
 
 func TestGenerateID(t *testing.T) {
 	for _, number := range []uint64{0, 1, 42, 63, 64, 255, 256, 65535, 65536, ^uint64(0)} {
-		id, err := GenerateID(number)
+		id, err := generateID(number)
 		if err != nil {
 			t.Fatal(err)
 		}

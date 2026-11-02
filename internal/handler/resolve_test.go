@@ -5,6 +5,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	"github.com/mordvinx/go-shortener/internal/repository"
 	"github.com/mordvinx/go-shortener/internal/service"
 )
 
@@ -22,9 +23,11 @@ func TestResolve(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			h := &Handler{Shortener: &service.Shortener{
-				Store: map[string]string{"known": originalURL},
-			}}
+			store := repository.NewMemory()
+			if err := store.Save("known", originalURL); err != nil {
+				t.Fatal(err)
+			}
+			h := &Handler{Shortener: service.NewShortener(store)}
 			r := httptest.NewRequest(http.MethodGet, "/"+tt.id, nil)
 			// При прямом вызове хендлера mux не заполняет параметр пути.
 			r.SetPathValue("id", tt.id)

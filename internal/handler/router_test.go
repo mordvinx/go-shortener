@@ -6,13 +6,14 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/mordvinx/go-shortener/internal/repository"
 	"github.com/mordvinx/go-shortener/internal/service"
 )
 
 func TestShortenAndResolve(t *testing.T) {
 	for _, baseURL := range []string{"http://localhost:8080", "http://localhost:8080/"} {
 		t.Run(baseURL, func(t *testing.T) {
-			h := &Handler{Base: baseURL, Shortener: &service.Shortener{}}
+			h := &Handler{Base: baseURL, Shortener: service.NewShortener(repository.NewMemory())}
 			router := h.Router()
 			originals := []string{"https://practicum.yandex.ru/", "https://example.com/path?q=value"}
 			links := make(map[string]bool)
@@ -40,7 +41,7 @@ func TestShortenAndResolve(t *testing.T) {
 }
 
 func TestInvalidRequests(t *testing.T) {
-	h := &Handler{Base: "http://localhost:8080", Shortener: &service.Shortener{}}
+	h := &Handler{Base: "http://localhost:8080", Shortener: service.NewShortener(repository.NewMemory())}
 	router := h.Router()
 	for _, tc := range []struct {
 		name, method, target, body string

@@ -2,16 +2,16 @@ package handler
 
 import (
 	"io"
+	"log"
 	"net/http"
 	"net/url"
-	"strings"
 )
 
 func (h *Handler) Shorten(w http.ResponseWriter, r *http.Request) {
 	body, err := io.ReadAll(r.Body)
 
 	if err != nil {
-		http.Error(w, "Broken request body", http.StatusBadRequest)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
 
@@ -34,11 +34,17 @@ func (h *Handler) Shorten(w http.ResponseWriter, r *http.Request) {
 	id, err := h.Shortener.Shorten(string(body))
 
 	if err != nil {
-		http.Error(w, "Error creating short URL", http.StatusInternalServerError)
+		log.Printf("failed to shorten URL: %v", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
 		return
 	}
 
-	shortURL := strings.TrimRight(h.Base, "/") + "/" + id
+	shortURL, err := url.JoinPath(h.Base, id)
+	if err != nil {
+		log.Printf("failed to build short URL: %v", err)
+		http.Error(w, http.StatusText(http.StatusInternalServerError), http.StatusInternalServerError)
+		return
+	}
 
 	w.Header().Set("Content-Type", "text/plain")
 	w.WriteHeader(http.StatusCreated)

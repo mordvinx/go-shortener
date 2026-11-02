@@ -1,8 +1,11 @@
 package handler
 
-import "github.com/mordvinx/go-shortener/internal/service"
+type Shortener interface {
+	Shorten(url string) (string, error)
+	Resolve(id string) (string, error)
+}
 
 type Handler struct {
 	Base      string
-	Shortener *service.Shortener
+	Shortener Shortener
 }

@@ -5,39 +5,36 @@ import (
 	"sync"
 )
 
+type Repository interface {
+	Save(id, url string) error
+	Get(id string) (string, error)
+}
+
 type Shortener struct {
-	RWMutex sync.RWMutex
-	Counter uint64
-	Store   map[string]string
+	mu         sync.Mutex
+	counter    uint64
+	repository Repository
+}
+
+func NewShortener(repository Repository) *Shortener {
+	return &Shortener{repository: repository}
 }
 
 func (s *Shortener) Shorten(url string) (string, error) {
-	s.RWMutex.Lock()
-	defer s.RWMutex.Unlock()
+	s.mu.Lock()
+	defer s.mu.Unlock()
 
-	if s.Store == nil {
-		s.Store = make(map[string]string)
+	id, err := generateID(s.counter)
+	if err != nil {
+		return "", err
 	}
-
-	id, err := GenerateID(s.Counter)
-
-	if err == nil {
-		s.Store[id] = url
-		s.Counter++
+	if err := s.repository.Save(id, url); err != nil {
+		return "", fmt.Errorf("save shortened URL: %w", err)
 	}
-
-	return id, err
+	s.counter++
+	return id, nil
 }
 
 func (s *Shortener) Resolve(short string) (string, error) {
-	s.RWMutex.RLock()
-	defer s.RWMutex.RUnlock()
-
-	url, ok := s.Store[short]
-
-	if !ok {
-		return "", fmt.Errorf("URL not found for short ID %q", short)
-	}
-
-	return url, nil
+	return s.repository.Get(short)
 }
