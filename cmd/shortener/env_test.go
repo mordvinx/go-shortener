@@ -19,7 +19,7 @@ func TestEnvironmentPriority(t *testing.T) {
 	binary := filepath.Join(t.TempDir(), "shortener")
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	if output, err := exec.CommandContext(ctx, "go", "build", "-o", binary, ".").CombinedOutput(); err != nil {
+	if output, err := exec.CommandContext(ctx, "go", "build", "-buildvcs=false", "-o", binary, ".").CombinedOutput(); err != nil {
 		t.Fatalf("build server: %v\n%s", err, output)
 	}
 
