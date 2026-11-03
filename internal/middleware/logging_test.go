@@ -19,16 +19,24 @@ func TestLogging(t *testing.T) {
 		status         int
 		body, location string
 	}{
-		{"explicit status", func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(201); io.WriteString(w, "created") }, 201, "created", ""},
-		{"implicit status", func(w http.ResponseWriter, r *http.Request) { io.WriteString(w, "hello") }, 200, "hello", ""},
-		{"empty handler", func(w http.ResponseWriter, r *http.Request) {}, 200, "", ""},
+		{"explicit status", func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusCreated)
+			io.WriteString(w, "created")
+		}, http.StatusCreated, "created", ""},
+		{"implicit status", func(w http.ResponseWriter, r *http.Request) { io.WriteString(w, "hello") }, http.StatusOK, "hello", ""},
+		{"empty handler", func(w http.ResponseWriter, r *http.Request) {}, http.StatusOK, "", ""},
 		{"multiple writes", func(w http.ResponseWriter, r *http.Request) {
 			io.WriteString(w, "привет")
 			io.WriteString(w, "!")
-		}, 200, "привет!", ""},
-		{"repeated status", func(w http.ResponseWriter, r *http.Request) { w.WriteHeader(201); w.WriteHeader(500) }, 201, "", ""},
-		{"redirect", func(w http.ResponseWriter, r *http.Request) { http.Redirect(w, r, "https://example.com/", 307) }, 307, "<a href=\"https://example.com/\">Temporary Redirect</a>.\n\n", "https://example.com/"},
-		{"error", func(w http.ResponseWriter, r *http.Request) { http.Error(w, "invalid", 400) }, 400, "invalid\n", ""},
+		}, http.StatusOK, "привет!", ""},
+		{"repeated status", func(w http.ResponseWriter, r *http.Request) {
+			w.WriteHeader(http.StatusCreated)
+			w.WriteHeader(http.StatusInternalServerError)
+		}, http.StatusCreated, "", ""},
+		{"redirect", func(w http.ResponseWriter, r *http.Request) {
+			http.Redirect(w, r, "https://example.com/", http.StatusTemporaryRedirect)
+		}, http.StatusTemporaryRedirect, "<a href=\"https://example.com/\">Temporary Redirect</a>.\n\n", "https://example.com/"},
+		{"error", func(w http.ResponseWriter, r *http.Request) { http.Error(w, "invalid", http.StatusBadRequest) }, http.StatusBadRequest, "invalid\n", ""},
 	} {
 		t.Run(tt.name, func(t *testing.T) {
 			core, logs := observer.New(zap.DebugLevel)
@@ -82,10 +90,10 @@ func TestResponseWriterPartialWrite(t *testing.T) {
 	underlying := &writerDouble{header: make(http.Header), n: 2, err: wantErr}
 	w := &responseWriter{ResponseWriter: underlying}
 	n, err := w.Write([]byte("hello"))
-	if n != 2 || !errors.Is(err, wantErr) || w.size != 2 || w.status != 200 {
+	if n != 2 || !errors.Is(err, wantErr) || w.size != 2 || w.status != http.StatusOK {
 		t.Errorf("n=%d err=%v size=%d status=%d", n, err, w.size, w.status)
 	}
-	if len(underlying.statuses) != 1 || underlying.statuses[0] != 200 {
+	if len(underlying.statuses) != 1 || underlying.statuses[0] != http.StatusOK {
 		t.Errorf("statuses=%v", underlying.statuses)
 	}
 }
@@ -93,16 +101,16 @@ func TestResponseWriterPartialWrite(t *testing.T) {
 func TestResponseWriterForwardsStatuses(t *testing.T) {
 	underlying := &writerDouble{header: make(http.Header)}
 	w := &responseWriter{ResponseWriter: underlying}
-	w.WriteHeader(103)
+	w.WriteHeader(http.StatusEarlyHints)
 	if w.status != 0 {
 		t.Fatalf("informational response finalized status: %d", w.status)
 	}
-	w.WriteHeader(201)
-	w.WriteHeader(500)
-	if w.status != 201 {
-		t.Errorf("status=%d, want 201", w.status)
+	w.WriteHeader(http.StatusCreated)
+	w.WriteHeader(http.StatusInternalServerError)
+	if w.status != http.StatusCreated {
+		t.Errorf("status=%d, want http.StatusCreated", w.status)
 	}
-	want := []int{103, 201, 500}
+	want := []int{http.StatusEarlyHints, http.StatusCreated, http.StatusInternalServerError}
 	if len(underlying.statuses) != len(want) {
 		t.Fatalf("statuses=%v", underlying.statuses)
 	}
