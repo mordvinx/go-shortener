@@ -4,13 +4,22 @@ import (
 	"log"
 	"net/http"
 
+	"go.uber.org/zap"
+
 	"github.com/mordvinx/go-shortener/internal/config"
 	"github.com/mordvinx/go-shortener/internal/handler"
+	"github.com/mordvinx/go-shortener/internal/middleware"
 	"github.com/mordvinx/go-shortener/internal/repository"
 	"github.com/mordvinx/go-shortener/internal/service"
 )
 
 func main() {
+	logger, err := zap.NewDevelopment()
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer func() { _ = logger.Sync() }()
+
 	cfg := config.ParseFlags()
 	config.ParseEnv(cfg)
 
@@ -19,7 +28,7 @@ func main() {
 		Shortener: service.NewShortener(repository.NewMemory()),
 	}
 
-	if err := http.ListenAndServe(cfg.Server.Address, h.Router()); err != nil {
+	if err := http.ListenAndServe(cfg.Server.Address, middleware.Logging(logger)(h.Router())); err != nil {
 		log.Fatal(err)
 	}
 }
