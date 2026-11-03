@@ -1,9 +1,12 @@
 package repository
 
 import (
+	"errors"
 	"fmt"
 	"sync"
 )
+
+var ErrAlreadyExists = errors.New("short ID already exists")
 
 type Memory struct {
 	mu    sync.Mutex
@@ -17,6 +20,9 @@ func NewMemory() *Memory {
 func (m *Memory) Save(id, url string) error {
 	m.mu.Lock()
 	defer m.mu.Unlock()
+	if _, exists := m.links[id]; exists {
+		return fmt.Errorf("save short ID %q: %w", id, ErrAlreadyExists)
+	}
 	m.links[id] = url
 	return nil
 }
