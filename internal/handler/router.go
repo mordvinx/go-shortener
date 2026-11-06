@@ -10,6 +10,7 @@ func (h *Handler) Router() http.Handler {
 	mux := chi.NewRouter()
 
 	mux.Post("/", h.Shorten)
+	mux.Post("/api/shorten", h.ShortenJSON)
 
 	mux.Get("/{id}", h.Resolve)
 
