@@ -28,7 +28,7 @@ func main() {
 		Shortener: service.NewShortener(repository.NewMemory()),
 	}
 
-	if err := http.ListenAndServe(cfg.Server.Address, middleware.Logging(logger)(h.Router())); err != nil {
+	if err := http.ListenAndServe(cfg.Server.Address, middleware.Logging(logger)(middleware.Gzip(h.Router()))); err != nil {
 		log.Fatal(err)
 	}
 }
