@@ -16,8 +16,8 @@ type Shortener struct {
 	repository Repository
 }
 
-func NewShortener(repository Repository) *Shortener {
-	return &Shortener{repository: repository}
+func NewShortener(repository Repository, initialCounter uint64) *Shortener {
+	return &Shortener{repository: repository, counter: initialCounter}
 }
 
 func (s *Shortener) Shorten(url string) (string, error) {

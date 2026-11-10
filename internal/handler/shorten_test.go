@@ -129,7 +129,7 @@ func TestShorten(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			h := &Handler{Base: "http://localhost:8080", Shortener: service.NewShortener(repository.NewMemory())}
+			h := &Handler{Base: "http://localhost:8080", Shortener: service.NewShortener(repository.NewMemory(), 0)}
 			r := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(tt.body))
 			r.Header.Set("Content-Type", "text/plain")
 			w := httptest.NewRecorder()

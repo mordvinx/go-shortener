@@ -27,7 +27,7 @@ func TestResolve(t *testing.T) {
 			if err := store.Save("known", originalURL); err != nil {
 				t.Fatal(err)
 			}
-			h := &Handler{Shortener: service.NewShortener(store)}
+			h := &Handler{Shortener: service.NewShortener(store, 0)}
 			r := httptest.NewRequest(http.MethodGet, "/"+tt.id, nil)
 			// При прямом вызове хендлера mux не заполняет параметр пути.
 			r.SetPathValue("id", tt.id)

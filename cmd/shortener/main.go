@@ -23,9 +23,14 @@ func main() {
 	cfg := config.ParseFlags()
 	config.ParseEnv(cfg)
 
+	store, err := repository.NewFile(cfg.Storage.FilePath)
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	h := handler.Handler{
 		Base:      cfg.Shortener.BaseURL,
-		Shortener: service.NewShortener(repository.NewMemory()),
+		Shortener: service.NewShortener(store, store.NextCounter()),
 	}
 
 	if err := http.ListenAndServe(cfg.Server.Address, middleware.Logging(logger)(middleware.Gzip(h.Router()))); err != nil {

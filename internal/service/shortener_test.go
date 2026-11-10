@@ -16,7 +16,7 @@ func (r failingRepository) Get(string) (string, error) { return "", r.err }
 
 func TestShortenerRepositoryErrors(t *testing.T) {
 	want := errors.New("storage unavailable")
-	s := NewShortener(failingRepository{err: want})
+	s := NewShortener(failingRepository{err: want}, 0)
 	if id, err := s.Shorten("https://example.com/"); id != "" || !errors.Is(err, want) {
 		t.Errorf("Shorten returned (%q, %v), want empty ID and storage error", id, err)
 	}
@@ -26,7 +26,7 @@ func TestShortenerRepositoryErrors(t *testing.T) {
 }
 
 func TestShortenerConcurrentRoundTrip(t *testing.T) {
-	s := NewShortener(repository.NewMemory())
+	s := NewShortener(repository.NewMemory(), 0)
 	const count = 50
 	ids := make(chan string, count)
 	var workers sync.WaitGroup

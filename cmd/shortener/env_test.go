@@ -79,8 +79,9 @@ func TestEnvironmentPriority(t *testing.T) {
 			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 			defer cancel()
 			cmd := exec.CommandContext(ctx, binary, args...)
+			cmd.Dir = t.TempDir()
 			for _, item := range os.Environ() {
-				if !strings.HasPrefix(item, "SERVER_ADDRESS=") && !strings.HasPrefix(item, "BASE_URL=") {
+				if !strings.HasPrefix(item, "SERVER_ADDRESS=") && !strings.HasPrefix(item, "BASE_URL=") && !strings.HasPrefix(item, "FILE_STORAGE_PATH=") {
 					cmd.Env = append(cmd.Env, item)
 				}
 			}

@@ -18,7 +18,7 @@ import (
 func TestShortenJSONRoundTrip(t *testing.T) {
 	for _, base := range []string{"http://localhost:8080", "http://localhost:8080/"} {
 		t.Run(base, func(t *testing.T) {
-			h := &Handler{Base: base, Shortener: service.NewShortener(repository.NewMemory())}
+			h := &Handler{Base: base, Shortener: service.NewShortener(repository.NewMemory(), 0)}
 			router := h.Router()
 			const original = "https://example.com/path?a=1&b=2"
 			r := httptest.NewRequest(http.MethodPost, "/api/shorten", strings.NewReader(`{"url":"`+original+`"}`))

@@ -52,7 +52,7 @@ func TestGzipRoundTrip(t *testing.T) {
 	for _, compressedRequest := range []bool{false, true} {
 		for _, compressedResponse := range []bool{false, true} {
 			t.Run(strconv.FormatBool(compressedRequest)+"/"+strconv.FormatBool(compressedResponse), func(t *testing.T) {
-				h := &handler.Handler{Base: "http://localhost:8080", Shortener: service.NewShortener(repository.NewMemory())}
+				h := &handler.Handler{Base: "http://localhost:8080", Shortener: service.NewShortener(repository.NewMemory(), 0)}
 				router := Gzip(h.Router())
 				const original = "https://example.com/page"
 				body := []byte(`{"url":"` + original + `"}`)
@@ -158,7 +158,7 @@ func TestGzipInvalidRequest(t *testing.T) {
 }
 
 func TestGzipPlainEndpoint(t *testing.T) {
-	h := &handler.Handler{Base: "http://localhost:8080", Shortener: service.NewShortener(repository.NewMemory())}
+	h := &handler.Handler{Base: "http://localhost:8080", Shortener: service.NewShortener(repository.NewMemory(), 0)}
 	r := httptest.NewRequest(http.MethodPost, "/", bytes.NewReader(gzipBytes(t, "https://example.com/")))
 	r.Header.Set("Content-Encoding", "gzip")
 	r.Header.Set("Accept-Encoding", "gzip")
